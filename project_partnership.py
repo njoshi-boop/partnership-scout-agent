@@ -26,7 +26,7 @@ if st.button("Find Partnership Opportunities"):
         with st.spinner(f"Agent is analyzing {company_name} and searching the web..."):
             try:
                 # 1. Initialize Model and Tool
-                llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.4)
+                llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.4)
                 search = DuckDuckGoSearchRun()
                 tools = [search]
                 
