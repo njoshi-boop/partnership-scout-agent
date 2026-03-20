@@ -10,7 +10,7 @@ api_key = st.secrets.get("GEMINI_API_KEY")
 if api_key:
     os.environ["GOOGLE_API_KEY"] = api_key
 
-st.title("🤝 Strategic Partnership Scout AI")
+st.title("Strategic Partnership Scout AI")
 st.write("Enter a company. The AI agent will scour the web to find the perfect non-competing partner and draft a joint-venture synergy report.")
 
 col1, col2 = st.columns(2)
