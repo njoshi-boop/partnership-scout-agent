@@ -33,7 +33,7 @@ st.markdown("""
         border: 1px solid #e0e0e0;
     }
     </style>
-    """, unsafe_allow_stats=True)
+    """, unsafe_allow_html=True)
 
 st.title("🤝 Strategic Partnership Scout")
 st.subheader("Autonomous Business Development Agent")
