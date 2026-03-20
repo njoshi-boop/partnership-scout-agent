@@ -10,27 +10,19 @@ api_key = st.secrets.get("GEMINI_API_KEY")
 if api_key:
     os.environ["GOOGLE_API_KEY"] = api_key
 
-# 1. ENHANCED UI: Page Config & Custom Styling
+# 1. Page Config
 st.set_page_config(page_title="Partnership Scout AI", page_icon="🤝", layout="wide")
 
-# Custom CSS to make the UI look "SaaS-y"
+# Custom CSS for button only
 st.markdown("""
     <style>
-    .main {
-        background-color: #f5f7f9;
-    }
     .stButton>button {
         width: 100%;
         border-radius: 5px;
         height: 3em;
         background-color: #007bff;
         color: white;
-    }
-    .report-container {
-        background-color: white;
-        padding: 2rem;
-        border-radius: 10px;
-        border: 1px solid #e0e0e0;
+        font-weight: bold;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -43,15 +35,14 @@ st.write("Leveraging LangGraph and Gemini 2.5-Flash to identify high-leverage br
 with st.container():
     col1, col2 = st.columns(2)
     with col1:
-        company_name = st.text_input("Target Company:", "Gymshark", help="The company we are finding partners for.")
+        company_name = st.text_input("Target Company:", "Gymshark")
     with col2:
-        core_audience = st.text_input("Target Demographic:", "Gen Z fitness enthusiasts", help="The core vibe or customer base.")
+        core_audience = st.text_input("Target Demographic:", "Gen Z fitness enthusiasts")
 
-# 2. UPDATED SYSTEM PROMPT: Removed the Roleplay Intro
+# 2. SYSTEM PROMPT
 system_prompt = """Identify THREE (3) distinct, high-leverage, non-competing partnership opportunities.
                 
-DO NOT include an introductory sentence like 'As VP of Business Development...' or 'I have identified...'.
-Start IMMEDIATELY with '## 1. Target Partner Company: [Name]'.
+DO NOT include any introductory sentences. Start IMMEDIATELY with '## 1. Target Partner Company: [Name]'.
 
 For EACH recommendation, include:
 1. **Target Partner Company Name**
@@ -90,16 +81,14 @@ if st.button("Generate Strategy Report"):
                 else:
                     clean_text = final_response
 
-                # 3. ENHANCED UI: Display in a clean white box
+                # 3. Clean UI Display (No white bar!)
                 st.markdown("---")
                 st.success("Analysis Complete")
                 
-                with st.container():
-                    st.markdown(f'<div class="report-container">', unsafe_allow_html=True)
-                    st.markdown(clean_text)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                # We output the text directly to the page now
+                st.markdown(clean_text)
                 
-                # 4. BONUS: Download Button
+                # 4. Download Button
                 st.download_button(
                     label="Download Report as TXT",
                     data=clean_text,
