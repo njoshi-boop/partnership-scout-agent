@@ -13,7 +13,7 @@ if api_key:
 st.set_page_config(page_title="Partnership Scout AI", page_icon="🤝")
 
 st.title("🤝 Strategic Partnership Scout AI")
-st.write("An Agentic AI that researches markets and identifies high-leverage business partnerships.")
+st.write("An Agentic AI that researches markets and identifies 3 high-leverage business partnerships with live links.")
 
 # Layout for inputs
 col1, col2 = st.columns(2)
@@ -26,10 +26,9 @@ if st.button("Generate Strategy Report"):
     if not company_name:
         st.warning("Please enter a company name.")
     else:
-        with st.spinner(f"Agent is investigating {company_name} and searching for partners..."):
+        with st.spinner(f"Agent is investigating {company_name} and searching for 3 partners..."):
             try:
                 # 1. Initialize Modern Gemini Model and Search Tool
-                # Using 2.5-Flash as the industry standard
                 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.4)
                 search = DuckDuckGoSearchRun()
                 tools = [search]
@@ -37,13 +36,22 @@ if st.button("Generate Strategy Report"):
                 # 2. Initialize the LangGraph Agent
                 agent_executor = create_react_agent(llm, tools)
                 
-                # 3. Define the Strategic Persona and Goal
+                # 3. Define the Persona with the 2 NEW requirements:
+                #    - Provide THREE partnerships
+                #    - Provide the WEBSITE URL
                 system_prompt = """You are an elite VP of Business Development. 
-                Your output must be formatted as a 'Partnership Synergy Report' with headings: 
-                Target Partner Company, The Audience Overlap, The Deal Concept, Why It Works. 
-                Use clean Markdown. Keep it highly actionable and realistic."""
+                Your goal is to identify THREE (3) distinct, high-leverage, non-competing partnership opportunities.
                 
-                user_prompt = f"My company is {company_name}, targeting {core_audience}. Research current market trends for us, identify a highly successful NON-COMPETING company targeting this exact same audience, and develop a concrete concept for a strategic partnership or licensing deal."
+                For EACH of the three recommendations, your output MUST include:
+                1. **Target Partner Company Name**
+                2. **Official Website URL** (Search the web to find the correct, current link)
+                3. **The Audience Overlap** (Explain why the demographics match)
+                4. **The Deal Concept** (A concrete, realistic joint-venture or marketing idea)
+                5. **Why It Works** (The strategic advantage for both brands)
+                
+                Use clean Markdown with clear headings. Keep the tone professional, analytical, and ready for a C-suite presentation."""
+                
+                user_prompt = f"My company is {company_name}, targeting {core_audience}. Find 3 different non-competing companies we should partner with. Provide their URLs and a detailed synergy report for each."
                 
                 # 4. Execute the Agentic Workflow
                 result = agent_executor.invoke({
@@ -55,11 +63,11 @@ if st.button("Generate Strategy Report"):
                 
                 st.success("Synergy Report Generated!")
                 
-                # 5. Clean Output Logic (Handles complex JSON blocks from the API)
+                # 5. Clean Output Logic
                 final_response = result["messages"][-1].content
                 
                 if isinstance(final_response, list):
-                    # Extract text only from list of dictionaries
+                    # Extract text only if it returns as a list of dicts
                     clean_text = "".join([item.get('text', '') for item in final_response if isinstance(item, dict)])
                     st.markdown(clean_text)
                 else:
@@ -67,4 +75,4 @@ if st.button("Generate Strategy Report"):
                 
             except Exception as e:
                 st.error(f"Error: {e}")
-                st.info("Check your API key in Streamlit Secrets if this persists.")
+                st.info("If you see a rate limit error, wait 30 seconds and try again.")
