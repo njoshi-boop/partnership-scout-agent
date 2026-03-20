@@ -1,8 +1,8 @@
 import streamlit as st
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import create_tool_calling_agent, AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate
+from langgraph.prebuilt import create_react_agent
+from langchain_core.messages import HumanMessage
 from langchain_community.tools import DuckDuckGoSearchRun
 
 # Securely load API key
@@ -30,25 +30,24 @@ if st.button("Find Partnership Opportunities"):
                 search = DuckDuckGoSearchRun()
                 tools = [search]
                 
-                # 2. Create the modern Prompt Template
-                prompt = ChatPromptTemplate.from_messages([
-                    ("system", "You are an elite VP of Business Development. Your output must be formatted as a 'Partnership Synergy Report' with headings: Target Partner Company, The Audience Overlap, The Deal Concept, Why It Works. Keep it highly actionable and realistic."),
-                    ("human", "My company is {company_name}, targeting {core_audience}. Research current market trends for us, identify a highly successful NON-COMPETING company targeting this exact same audience, and develop a concrete concept for a strategic partnership or licensing deal."),
-                    ("placeholder", "{agent_scratchpad}"),
-                ])
-
-                # 3. Initialize the modern Agent
-                agent = create_tool_calling_agent(llm, tools, prompt)
-                agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+                # 2. The System Prompt (Rules for the AI)
+                system_prompt = """You are an elite VP of Business Development. 
+                Your output must be formatted as a 'Partnership Synergy Report' with headings: 
+                Target Partner Company, The Audience Overlap, The Deal Concept, Why It Works. 
+                Keep it highly actionable and realistic."""
+                
+                # 3. Initialize the modern LangGraph Agent
+                agent_executor = create_react_agent(llm, tools, state_modifier=system_prompt)
                 
                 # 4. Run the Agent
-                result = agent_executor.invoke({
-                    "company_name": company_name,
-                    "core_audience": core_audience
-                })
+                user_prompt = f"My company is {company_name}, targeting {core_audience}. Research current market trends for us, identify a highly successful NON-COMPETING company targeting this exact same audience, and develop a concrete concept for a strategic partnership or licensing deal."
+                
+                result = agent_executor.invoke({"messages": [HumanMessage(content=user_prompt)]})
                 
                 st.success("Synergy Report Generated!")
-                st.markdown(result["output"])
+                
+                # LangGraph returns a list of messages. We just want to display the last one (the AI's final answer).
+                st.markdown(result["messages"][-1].content)
                 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
