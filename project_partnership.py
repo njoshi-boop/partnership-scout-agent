@@ -1,14 +1,16 @@
 import streamlit as st
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import initialize_agent, AgentType
+from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.tools import DuckDuckGoSearchRun
 
 # Securely load API key
-api_key = st.secrets.get("GEMINI_API_KEY", "YOUR_LOCAL_API_KEY_HERE")
-os.environ["GOOGLE_API_KEY"] = api_key
+api_key = st.secrets.get("GEMINI_API_KEY")
+if api_key:
+    os.environ["GOOGLE_API_KEY"] = api_key
 
-st.title(" Strategic Partnership Scout AI")
+st.title("🤝 Strategic Partnership Scout AI")
 st.write("Enter a company. The AI agent will scour the web to find the perfect non-competing partner and draft a joint-venture synergy report.")
 
 col1, col2 = st.columns(2)
@@ -21,43 +23,32 @@ if st.button("Find Partnership Opportunities"):
     if not company_name:
         st.warning("Please enter a company name.")
     else:
-        with st.spinner(f"Agent is analyzing {company_name} and searching the web for synergistic partners..."):
+        with st.spinner(f"Agent is analyzing {company_name} and searching the web..."):
             try:
-                # Initialize Model and Tool
+                # 1. Initialize Model and Tool
                 llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.4)
                 search = DuckDuckGoSearchRun()
                 tools = [search]
                 
-                # Initialize the ReAct Agent
-                agent = initialize_agent(
-                    tools, 
-                    llm, 
-                    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
-                    verbose=True,
-                    handle_parsing_errors=True
-                )
+                # 2. Create the modern Prompt Template
+                prompt = ChatPromptTemplate.from_messages([
+                    ("system", "You are an elite VP of Business Development. Your output must be formatted as a 'Partnership Synergy Report' with headings: Target Partner Company, The Audience Overlap, The Deal Concept, Why It Works. Keep it highly actionable and realistic."),
+                    ("human", "My company is {company_name}, targeting {core_audience}. Research current market trends for us, identify a highly successful NON-COMPETING company targeting this exact same audience, and develop a concrete concept for a strategic partnership or licensing deal."),
+                    ("placeholder", "{agent_scratchpad}"),
+                ])
+
+                # 3. Initialize the modern Agent
+                agent = create_tool_calling_agent(llm, tools, prompt)
+                agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
                 
-                # The Agentic Prompt - This is where the magic happens
-                prompt = f"""
-                You are a VP of Business Development. Your client is {company_name}, targeting {core_audience}.
+                # 4. Run the Agent
+                result = agent_executor.invoke({
+                    "company_name": company_name,
+                    "core_audience": core_audience
+                })
                 
-                Use your search tool to execute the following steps:
-                1. Briefly research current market trends for {company_name}.
-                2. Identify a highly successful, NON-COMPETING company that targets the exact same '{core_audience}' demographic. 
-                3. Develop a concrete concept for a strategic partnership, co-marketing campaign, or licensing deal between the two companies.
-                
-                Format your output as a 'Partnership Synergy Report' with these exact markdown headings:
-                - **Target Partner Company**
-                - **The Audience Overlap**
-                - **The Deal Concept (How both make money)**
-                - **Why It Works (Strategic Moat)**
-                
-                Keep it highly actionable, business-focused, and realistic. No fluff.
-                """
-                
-                response = agent.run(prompt)
                 st.success("Synergy Report Generated!")
-                st.markdown(response)
+                st.markdown(result["output"])
                 
             except Exception as e:
-                st.error(f"An error occurred: {e}. If this is a rate limit, please wait a minute and try again.")
+                st.error(f"An error occurred: {e}")
