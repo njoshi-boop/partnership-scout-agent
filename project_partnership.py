@@ -17,7 +17,7 @@ col1, col2 = st.columns(2)
 with col1:
     company_name = st.text_input("Your Company:", "Y Combinator")
 with col2:
-    core_audience = st.text_input("Core Audience/Vibe:", "Startup Incubators")
+    core_audience = st.text_input("Core Audience/Vibe:", "Startup Founders, Builders, Entrepreneurs, Investors")
 
 if st.button("Find Partnership Opportunities"):
     if not company_name:
