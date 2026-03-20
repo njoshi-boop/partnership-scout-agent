@@ -50,7 +50,14 @@ if st.button("Find Partnership Opportunities"):
                 })
                 
                 st.success("Synergy Report Generated!")
-                st.markdown(result["messages"][-1].content)
+                # Clean the output if the API returns a complex list instead of a string
+             final_content = result["messages"][-1].content
+             if isinstance(final_content, list):
+                 # Extract only the clean text block
+                 clean_text = "".join([item.get('text', '') for item in final_content if isinstance(item, dict)])
+                 st.markdown(clean_text)
+             else:
+                 st.markdown(final_content)
                 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
