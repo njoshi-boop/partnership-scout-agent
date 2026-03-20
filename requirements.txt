@@ -1,5 +1,6 @@
 streamlit
-langchain
-langchain-google-genai
-langchain-community
+langchain>=0.2.14
+langchain-core>=0.2.32
+langchain-community>=0.2.12
+langchain-google-genai>=1.0.8
 duckduckgo-search
